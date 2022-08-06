@@ -49,16 +49,26 @@ class TranslatorTwitterBot:
       auth.set_access_token(self.access_token, self.secret_access_token)
       self.api: tweepy.API = tweepy.API(auth, wait_on_rate_limit=True)
   
-  def get_src_tgt_languages(self, source_tweet_status: Status) -> Tuple[str]:
+  def get_src_tgt_languages(self, tweet_status: Status) -> Tuple[str]:
       """
       This function will determinate the direction of the translation\
       depending the language in which the tweet is written.
 
       Parameters
       ----------
-      - status_ansewer: str
+      - tweet_status: Status
+          The tweet for which to determine the translation direction\
+          for translating it.
+        
+      Returns
+      -------
+      - Tuple of strs:
+          The first element of the tuple is the source language of the\
+          translation and the second element is the language in which\
+          the tweet is to be translated.
       """
-      language: str = source_tweet_status.lang
+      
+      language: str = tweet_status.lang
       if language in self.languages :
           src: str = self.languages[language]
           tgt: str = "fuv_Latn"
