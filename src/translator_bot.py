@@ -1,11 +1,13 @@
 """This module implements a twitter bot able to translate\
     from Fulfulde to French, English, and Arabic and in the\
     other direction too"""
+
 # python standard packages
 from typing import Tuple, Dict
 import logging
 import os
 import time
+from collections import Counter
 
 # installed packages
 import tweepy
@@ -54,16 +56,29 @@ class TranslatorTwitterBot:
       auth.set_access_token(self.access_token, self.secret_access_token)
       self.api: tweepy.API = tweepy.API(auth, wait_on_rate_limit=True)
   
-  def get_user_language(self, username) -> str:
+  def get_user_language(self, user_id: int) -> str:
       """
       Will return the language the most used\
-      by the twitter user.
+      by a twitter user.
 
       Parameters
       ----------
-      - username: str
-          The twitter username for 
+      - user_id: int
+          The user id for which to get the language
+      
+      Return
+      ------
+      - str
+          The language the most used by the twitter user.
       """
+      tweets = self.api.user_timeline(user_id=user_id,
+                                      count=1_000,
+                                      include_rts = False,
+                                      exclude_replies=False,
+                                      tweet_mode = 'extended')
+      
+      return Counter(tweet.lang for tweet in tweets).most_common(1)[0][0]
+
   
   def get_src_tgt_languages(self,
                             tweet_status: Status,
@@ -93,7 +108,7 @@ class TranslatorTwitterBot:
           tgt: str = "fuv_Latn"
       else :
           src: str = "fuv_Latn"
-          tgt: str = self.languages[language]
+          tgt: str = self.get_user_language(user_id)
       return src, tgt
 
   def check_mentions(self) -> Dict[str, str]:
