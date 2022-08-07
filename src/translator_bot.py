@@ -54,10 +54,25 @@ class TranslatorTwitterBot:
       auth.set_access_token(self.access_token, self.secret_access_token)
       self.api: tweepy.API = tweepy.API(auth, wait_on_rate_limit=True)
   
-  def get_src_tgt_languages(self, tweet_status: Status) -> Tuple[str]:
+  def get_user_language(self, username) -> str:
+      """
+      Will return the language the most used\
+      by the twitter user.
+
+      Parameters
+      ----------
+      - username: str
+          The twitter username for 
+      """
+  
+  def get_src_tgt_languages(self,
+                            tweet_status: Status,
+                            user_id: int,
+                            ) -> Tuple[str]:
       """
       This function will determinate the direction of the translation\
-      depending the language in which the tweet is written.
+      depending the language in which the tweet is written and the tweets\
+      of the user calling the bot.
 
       Parameters
       ----------
