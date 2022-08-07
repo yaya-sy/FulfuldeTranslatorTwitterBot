@@ -3,7 +3,7 @@
     other direction too"""
 
 # python standard packages
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Union
 import logging
 import os
 import time
@@ -107,13 +107,19 @@ class TranslatorTwitterBot:
           src: str = self.languages[language]
           tgt: str = "fuv_Latn"
       else :
+          # we assume the source language of the tweet to translate
+          # is in Fulfulde
           src: str = "fuv_Latn"
           tgt: str = self.get_user_language(user_id)
+          # if the target language id not in the considered languages,
+          # then we translate the tweet in french by default.
+          if tgt not in self.languages:
+              tgt: str = "fra_Latn"
       return src, tgt
 
   def check_mentions(self) -> Dict[str, str]:
-      """
-      """
+      """The bot check its mentions timeline and collect\
+          all the needed informations to perform his task."""
       last_mention: str = list(self.api.mentions_timeline(count = 1,
                                                           tweet_mode='extended'))[0]
       if last_mention.in_reply_to_status_id:
@@ -132,8 +138,29 @@ class TranslatorTwitterBot:
               "translate_this_text" : source_text_tweet
           }
 
-  def translate(src_language: str, tgt_language: str, text_to_translate: str) -> str:
+  def translate(self, src_language: str, tgt_language: str, text_to_translate: str) -> str:
+      """Translate a given text from source language to a target language."""
+
+      translator = pipeline('translation',
+                            model=self.model,
+                            tokenizer=self.tokenizer,
+                            src_lang=src_language,
+                            tgt_lang=tgt_language)
+
+      return translator(text_to_translate)[0]['translation_text']
+  
+  def rereply_to_the_tweet(self,
+                            username: str,
+                            text_to_reply: str,
+                            tweet_to_reply: str) -> Union[None, str]:
       """
       """
-
-
+      try:
+          self.api.update_status(status=f'@{username} {text_to_reply}',
+                                 in_reply_to_status_id=tweet_to_reply,
+                                 auto_populate_reply_metadata=True)
+      except:
+          return text_to_reply
+  
+  def run_bot(self) -> None:
+      pass
