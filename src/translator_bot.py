@@ -4,7 +4,6 @@
 
 # python standard packages
 from typing import Tuple, Dict, Union
-import logging
 import os
 import time
 from collections import Counter
@@ -12,7 +11,6 @@ from collections import Counter
 # installed packages
 import tweepy
 from tweepy.models import Status
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
 
 class TranslatorTwitterBot:
   """
@@ -46,8 +44,6 @@ class TranslatorTwitterBot:
       self.access_token: str = access_token
       self.secret_access_token: str = secret_access_token
       self.last_translation: str = ""
-      self.model = AutoModelForSeq2SeqLM.from_pretrained("facebook/nllb-200-distilled-1.3B")
-      self.tokenizer = AutoTokenizer.from_pretrained("facebook/nllb-200-distilled-1.3B")
       self._init_twitter_api()
   
   def get_twitter_api(self) -> None:
@@ -141,13 +137,7 @@ class TranslatorTwitterBot:
   def translate(self, src_language: str, tgt_language: str, text_to_translate: str) -> str:
       """Translate a given text from source language to a target language."""
 
-      translator = pipeline('translation',
-                            model=self.model,
-                            tokenizer=self.tokenizer,
-                            src_lang=src_language,
-                            tgt_lang=tgt_language)
-
-      return translator(text_to_translate)[0]['translation_text']
+      pass
   
   def rereply_to_the_tweet(self,
                             username: str,
