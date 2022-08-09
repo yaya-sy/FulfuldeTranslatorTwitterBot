@@ -9,6 +9,7 @@ from pathlib import Path
 import time
 import logging
 from collections import Counter
+import re
 
 # installed packages
 import requests
@@ -206,7 +207,7 @@ class TranslatorTwitterBot:
         - str:
             The tweet id for which to reply.
         """
-        text_to_reply = text_to_reply.replace("@firtanam_", "")
+        text_to_reply = re.sub("@firtanam_", "", text_to_reply)
         try:
             self.api.update_status(status=text_to_reply,
                                     in_reply_to_status_id=tweet_to_reply,
