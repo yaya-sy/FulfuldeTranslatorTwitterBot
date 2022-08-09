@@ -1,1 +1,0 @@
-worker: python src/translator_bot.py --ngram_models_folder ngram_language_models/
