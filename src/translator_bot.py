@@ -208,7 +208,9 @@ class TranslatorTwitterBot:
             The tweet id for which to reply.
         """
         text_to_reply = re.sub("@firtanam_", "", text_to_reply)
+        text_to_reply.strip()
         text_to_reply = re.sub(' +', ' ', text_to_reply)
+
         try:
             self.api.update_status(status=text_to_reply,
                                     in_reply_to_status_id=tweet_to_reply,
@@ -222,6 +224,8 @@ class TranslatorTwitterBot:
         last_reply = None
         while True:
             mention_data = self.check_mentions()
+            if re.sub("\B\@\w+", "", mention_data["translate_this_text"]).strip():
+                continue
             if not mention_data :
                 continue
             traslated_tweet = self.translate(
