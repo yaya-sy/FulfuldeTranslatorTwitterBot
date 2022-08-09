@@ -208,6 +208,7 @@ class TranslatorTwitterBot:
             The tweet id for which to reply.
         """
         text_to_reply = re.sub("@firtanam_", "", text_to_reply)
+        text_to_reply = re.sub(' +', ' ', text_to_reply)
         try:
             self.api.update_status(status=text_to_reply,
                                     in_reply_to_status_id=tweet_to_reply,
@@ -235,7 +236,7 @@ class TranslatorTwitterBot:
                             tweet_to_reply=mention_data["reply_to_this_tweet"]
                             )
             logging.info("Waiting...")
-            time.sleep(60)
+            time.sleep(15)
 
 def main() -> None:
     """Instanciate a translator bot and runs it."""
