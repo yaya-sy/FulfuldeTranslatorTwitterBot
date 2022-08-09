@@ -5,6 +5,7 @@
 # python standard packages
 from typing import Tuple, Dict
 import os
+from pathlib import Path
 import time
 import logging
 from collections import Counter
@@ -13,6 +14,9 @@ from collections import Counter
 import requests
 import tweepy
 from tweepy.models import Status
+
+# local modules
+from ngram_lm import NGramLanguageModel
 
 class TranslatorTwitterBot:
     """
@@ -28,29 +32,41 @@ class TranslatorTwitterBot:
 
     Parameters
     ----------
-    # TODO
+    - api_key: str
+        The twitter API key.
+    - api_secret_key: str
+        The twitter API secret key.
+    - access_token: str
+        The access token for the twitter API.
+    - secret_access_token: str
+        The secret token for the twitter API.
     """
     def __init__(self,
                     api_key: str,
-                    secret_key: str,
+                    api_secret_key: str,
                     access_token: str,
-                    secret_access_token: str):
+                    secret_access_token: str,
+                    ngram_models_folder: str):
 
             self.languages: Dict[str, str]  = {
+                                                "ff" : "fuv_Latn",
                                                 "fr" : "fra_Latn",
                                                 "en" : "eng_Latn",
                                                 "ar" : "arb_Arab"
                                                 }
             self.api_key: str = api_key
-            self.secret_key: str = secret_key
+            self.api_secret_key: str = api_secret_key
             self.access_token: str = access_token
             self.secret_access_token: str = secret_access_token
-            self.last_translation: str = ""
+            self.ngram_models = [NGramLanguageModel() for _ in self.languages]
+            trained_models = list(Path(ngram_models_folder).glob("*.json"))
+            for trained_model, model in zip(trained_models, self.ngram_models):
+                model.load_model(trained_model)
             self._init_twitter_api()
-    
-    def get_twitter_api(self) -> None:
+
+    def _init_twitter_api(self) -> None:
         """Authentificate the twitter API given according to the given token"""
-        auth: tweepy.OAuthHandler = tweepy.OAuthHandler(self.api_key, self.secret_key)
+        auth: tweepy.OAuthHandler = tweepy.OAuthHandler(self.api_key, self.api_secret_key)
         auth.set_access_token(self.access_token, self.secret_access_token)
         self.api: tweepy.API = tweepy.API(auth, wait_on_rate_limit=True)
 
@@ -76,8 +92,24 @@ class TranslatorTwitterBot:
                                         tweet_mode = 'extended')
         
         return Counter(tweet.lang for tweet in tweets).most_common(1)[0][0]
-
     
+    def language_identifier(self, text) -> str:
+        """
+        Try identifying language by using ngram language.
+        Next version : using a neural model for this task.
+
+        Parameters
+        ----------
+        - text: str
+            Text for which to identify the language.
+        
+        Return
+        ------
+        - str:
+            The identified language.
+        """
+        return max((model.assign_logprob(text), model.language)
+                    for model in self.ngram_models)[1]
     def get_src_tgt_languages(self,
                                 tweet_status: Status,
                                 user_id: int,
@@ -107,24 +139,30 @@ class TranslatorTwitterBot:
         else :
             # we assume the source language of the tweet to translate
             # is in Fulfulde
-            src: str = "fuv_Latn"
+            src: str = self.language_identifier(tweet_status.full_text.strip())
+            src: str = self.languages[src]
             tgt: str = self.get_user_language(user_id)
             # if the target language id not in the considered languages,
             # then we translate the tweet in french by default.
             if tgt not in self.languages:
                 tgt: str = "fra_Latn"
+                return src, tgt
+            tgt: str = self.languages[tgt]
         return src, tgt
 
     def check_mentions(self) -> Dict[str, str]:
         """The bot check its mentions timeline and collect\
         all the needed informations to perform his task."""
-        last_mention: str = list(self.api.mentions_timeline(count = 1,
-                                                            tweet_mode='extended'))[0]
+        mentions: str = list(self.api.mentions_timeline(count = 1,
+                                                            tweet_mode='extended'))
+        if not mentions:
+            return None
+        last_mention = mentions[0]
         if last_mention.in_reply_to_status_id:
             source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
                                                                 tweet_mode="extended")
-            src, tgt = self.get_src_tgt_languages(source_tweet_status)
             mention_username: str = last_mention.user.screen_name
+            src, tgt = self.get_src_tgt_languages(source_tweet_status, last_mention.user.id_str)
             source_text_tweet: str = source_tweet_status.full_text.strip()
             tweet_id_str: str = last_mention.id_str
 
@@ -142,12 +180,13 @@ class TranslatorTwitterBot:
         inputs = {"data": [text_to_translate, src_language, tgt_language, 250]}
         response = requests.post("https://hf.space/embed/yaya-sy/FulfuldeTranslator/+/api/predict",
                                 json=inputs)
-        
-        return response.json()["data"][0]
+        try : 
+            return response.json()["data"][0]
+        except :
+            return None
         
         
     def rereply_to_the_tweet(self,
-                                username: str,
                                 text_to_reply: str,
                                 tweet_to_reply: str) -> str:
         """
@@ -156,8 +195,6 @@ class TranslatorTwitterBot:
 
         Parameters
         ----------
-        - username: str
-            The username to which reply.
         - text_to_reply: str
             The text to reply to the user.
         - tweet_to_reply: str
@@ -169,7 +206,7 @@ class TranslatorTwitterBot:
             The tweet id for which to reply.
         """
         try:
-            self.api.update_status(status=f'@{username} {text_to_reply}',
+            self.api.update_status(status=text_to_reply,
                                     in_reply_to_status_id=tweet_to_reply,
                                     auto_populate_reply_metadata=True)
             return tweet_to_reply
@@ -188,28 +225,26 @@ class TranslatorTwitterBot:
                                 tgt_language=mention_data["tgt_language"],
                                 text_to_translate=mention_data["translate_this_text"]
                                 )
-            if mention_data["reply_to_this_tweet"] == last_reply:
+            if mention_data["reply_to_this_tweet"] == last_reply or not traslated_tweet:
                 continue
             last_reply = self.rereply_to_the_tweet(
-                            username=mention_data["reply_to_this_username"],
                             text_to_reply=traslated_tweet,
                             tweet_to_reply=mention_data["reply_to_this_tweet"]
                             )
             logging.info("Waiting...")
-            time.sleep(10)
+            time.sleep(1800)
 
 def main() -> None:
     """Instanciate a translator bot and runs it."""
 
     translator_bot = TranslatorTwitterBot(
                         api_key=os.environ["api_key"],
-                        secret_key=os.environ["secret_key"],
+                        api_secret_key=os.environ["api_secret_key"],
                         access_token=os.environ["access_token"],
-                        secret_access_token=os.environ["secret_access_token"]
+                        secret_access_token=os.environ["secret_access_token"],
+                        ngram_models_folder="ngram_language_models"
                     )
     translator_bot.run_bot()
 
 if __name__ == "__main__" :
     main()
-
-
