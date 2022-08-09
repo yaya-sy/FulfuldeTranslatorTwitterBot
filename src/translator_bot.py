@@ -232,7 +232,7 @@ class TranslatorTwitterBot:
                             tweet_to_reply=mention_data["reply_to_this_tweet"]
                             )
             logging.info("Waiting...")
-            time.sleep(1800)
+            time.sleep(60)
 
 def main() -> None:
     """Instanciate a translator bot and runs it."""
