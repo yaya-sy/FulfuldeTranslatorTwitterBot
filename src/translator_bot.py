@@ -206,6 +206,7 @@ class TranslatorTwitterBot:
         - str:
             The tweet id for which to reply.
         """
+        text_to_reply = text_to_reply.replace("@firtanam_", "")
         try:
             self.api.update_status(status=text_to_reply,
                                     in_reply_to_status_id=tweet_to_reply,
