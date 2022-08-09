@@ -110,6 +110,7 @@ class TranslatorTwitterBot:
         """
         return max((model.assign_logprob(text), model.language)
                     for model in self.ngram_models)[1]
+                    
     def get_src_tgt_languages(self,
                                 tweet_status: Status,
                                 user_id: int,
