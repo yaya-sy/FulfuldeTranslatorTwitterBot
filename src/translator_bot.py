@@ -233,8 +233,6 @@ class TranslatorTwitterBot:
             mention_data = self.check_mentions()
             if not mention_data :
                 continue
-            if re.sub("\B\@\w+", "", mention_data["translate_this_text"]).strip():
-                continue
             print(">> to translate", mention_data["translate_this_text"])
             traslated_tweet = self.translate(
                                 src_language=mention_data["src_language"],
