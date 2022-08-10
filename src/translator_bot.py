@@ -171,6 +171,7 @@ class TranslatorTwitterBot:
             mention_userid: int = last_mention.user.id_str
             src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
             source_text_tweet: str = source_tweet_status.full_text.strip()
+            print("@@@", source_tweet_status.text.strip())
             tweet_id_str: str = last_mention.id_str
 
             return {
