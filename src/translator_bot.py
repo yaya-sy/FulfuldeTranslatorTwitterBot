@@ -157,7 +157,6 @@ class TranslatorTwitterBot:
         """The bot check its mentions timeline and collect\
         all the needed informations to perform his task."""
         mentions: str = list(self.api.mentions_timeline(count = 1,
-                                                            since_id=self.since_id,
                                                             tweet_mode='extended'))
         if not mentions:
             return None
@@ -167,7 +166,6 @@ class TranslatorTwitterBot:
         if last_mention.in_reply_to_status_id:
             source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
                                                                 tweet_mode="extended")
-            self.since_id=last_mention.id
             mention_username: str = last_mention.user.screen_name
             mention_userid: int = last_mention.user.id_str
             src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
