@@ -61,6 +61,7 @@ class TranslatorTwitterBot:
             self.secret_access_token: str = secret_access_token
             self.ngram_models = [NGramLanguageModel() for _ in self.languages]
             trained_models = list(Path(ngram_models_folder).glob("*.json"))
+            self.since_id = 0
             for trained_model, model in zip(trained_models, self.ngram_models):
                 model.load_model(trained_model)
             self._init_twitter_api()
@@ -157,11 +158,13 @@ class TranslatorTwitterBot:
         all the needed informations to perform his task."""
         try:
             mentions: str = list(self.api.mentions_timeline(count = 1,
+                                                                since_id=self.since_id,
                                                                 tweet_mode='extended'))
             last_mention = mentions[0]
             if last_mention.in_reply_to_status_id:
                 source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
                                                                     tweet_mode="extended")
+                self.since_id=last_mention.id
                 mention_username: str = last_mention.user.screen_name
                 mention_userid: int = last_mention.user.id_str
                 src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
