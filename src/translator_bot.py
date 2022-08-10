@@ -235,6 +235,7 @@ class TranslatorTwitterBot:
                 continue
             if re.sub("\B\@\w+", "", mention_data["translate_this_text"]).strip():
                 continue
+            print(">> to translate", mention_data["translate_this_text"])
             traslated_tweet = self.translate(
                                 src_language=mention_data["src_language"],
                                 tgt_language=mention_data["tgt_language"],
