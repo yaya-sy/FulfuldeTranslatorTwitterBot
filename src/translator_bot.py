@@ -158,10 +158,12 @@ class TranslatorTwitterBot:
         all the needed informations to perform his task."""
         mentions: str = list(self.api.mentions_timeline(count = 1,
                                                             tweet_mode='extended'))
-        print(mentions)
         if not mentions:
             return None
         last_mention = mentions[0]
+        if re.sub("\B\@\w+", "", last_mention.full_text).strip():
+            print(re.sub("\B\@\w+", "", last_mention.full_text).strip())
+            return None
         if last_mention.in_reply_to_status_id:
             source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
                                                                 tweet_mode="extended")
@@ -228,7 +230,6 @@ class TranslatorTwitterBot:
         while True:
             mention_data = self.check_mentions()
             if not mention_data :
-                logging.info("Waiting...")
                 time.sleep(30)
                 continue
             print(">> to translate", mention_data["translate_this_text"])
@@ -238,7 +239,6 @@ class TranslatorTwitterBot:
                                 text_to_translate=mention_data["translate_this_text"]
                                 )
             if mention_data["reply_to_this_tweet"] == last_reply or not traslated_tweet:
-                logging.info("Waiting...")
                 time.sleep(30)
                 continue
             last_reply = self.rereply_to_the_tweet(
