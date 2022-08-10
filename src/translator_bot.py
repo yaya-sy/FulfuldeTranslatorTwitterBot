@@ -158,27 +158,25 @@ class TranslatorTwitterBot:
         try:
             mentions: str = list(self.api.mentions_timeline(count = 1,
                                                                 tweet_mode='extended'))
+            last_mention = mentions[0]
+            if last_mention.in_reply_to_status_id:
+                source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
+                                                                    tweet_mode="extended")
+                mention_username: str = last_mention.user.screen_name
+                mention_userid: int = last_mention.user.id_str
+                src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
+                source_text_tweet: str = source_tweet_status.full_text.strip()
+                tweet_id_str: str = last_mention.id_str
+
+                return {
+                    "src_language" : src,
+                    "tgt_language" : tgt,
+                    "reply_to_this_username" : mention_username,
+                    "reply_to_this_tweet" : tweet_id_str,
+                    "translate_this_text" : source_text_tweet
+                }
         except:
             return None
-        if not mentions:
-            return None
-        last_mention = mentions[0]
-        if last_mention.in_reply_to_status_id:
-            source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
-                                                                tweet_mode="extended")
-            mention_username: str = last_mention.user.screen_name
-            mention_userid: int = last_mention.user.id_str
-            src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
-            source_text_tweet: str = source_tweet_status.full_text.strip()
-            tweet_id_str: str = last_mention.id_str
-
-            return {
-                "src_language" : src,
-                "tgt_language" : tgt,
-                "reply_to_this_username" : mention_username,
-                "reply_to_this_tweet" : tweet_id_str,
-                "translate_this_text" : source_text_tweet
-            }
 
     def translate(self, src_language: str, tgt_language: str, text_to_translate: str) -> str:
         """Translate a given text from source language to a target language."""
