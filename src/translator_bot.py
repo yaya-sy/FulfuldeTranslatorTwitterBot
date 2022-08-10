@@ -156,30 +156,31 @@ class TranslatorTwitterBot:
     def check_mentions(self) -> Dict[str, str]:
         """The bot check its mentions timeline and collect\
         all the needed informations to perform his task."""
-        try:
-            mentions: str = list(self.api.mentions_timeline(count = 1,
-                                                                since_id=self.since_id,
-                                                                tweet_mode='extended'))
-            last_mention = mentions[0]
-            if last_mention.in_reply_to_status_id:
-                source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
-                                                                    tweet_mode="extended")
-                self.since_id=last_mention.id
-                mention_username: str = last_mention.user.screen_name
-                mention_userid: int = last_mention.user.id_str
-                src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
-                source_text_tweet: str = source_tweet_status.full_text.strip()
-                tweet_id_str: str = last_mention.id_str
-
-                return {
-                    "src_language" : src,
-                    "tgt_language" : tgt,
-                    "reply_to_this_username" : mention_username,
-                    "reply_to_this_tweet" : tweet_id_str,
-                    "translate_this_text" : source_text_tweet
-                }
-        except:
+        mentions: str = list(self.api.mentions_timeline(count = 1,
+                                                            since_id=self.since_id,
+                                                            tweet_mode='extended'))
+        if not mentions:
             return None
+        last_mention = mentions[0]
+        if re.sub("\B\@\w+", "", last_mention.full_text).strip():
+            return None
+        if last_mention.in_reply_to_status_id:
+            source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
+                                                                tweet_mode="extended")
+            self.since_id=last_mention.id
+            mention_username: str = last_mention.user.screen_name
+            mention_userid: int = last_mention.user.id_str
+            src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
+            source_text_tweet: str = source_tweet_status.full_text.strip()
+            tweet_id_str: str = last_mention.id_str
+
+            return {
+                "src_language" : src,
+                "tgt_language" : tgt,
+                "reply_to_this_username" : mention_username,
+                "reply_to_this_tweet" : tweet_id_str,
+                "translate_this_text" : source_text_tweet
+            }
 
     def translate(self, src_language: str, tgt_language: str, text_to_translate: str) -> str:
         """Translate a given text from source language to a target language."""
@@ -228,10 +229,9 @@ class TranslatorTwitterBot:
         """Run the bot by calling all the necessary functions here!"""
         last_reply = None
         while True:
-            logging.info("Waiting...")
-            time.sleep(30)
             mention_data = self.check_mentions()
             if not mention_data :
+                time.sleep(30)
                 continue
             print(">> to translate", mention_data["translate_this_text"])
             traslated_tweet = self.translate(
@@ -240,11 +240,14 @@ class TranslatorTwitterBot:
                                 text_to_translate=mention_data["translate_this_text"]
                                 )
             if mention_data["reply_to_this_tweet"] == last_reply or not traslated_tweet:
+                time.sleep(30)
                 continue
             last_reply = self.rereply_to_the_tweet(
                             text_to_reply=traslated_tweet,
                             tweet_to_reply=mention_data["reply_to_this_tweet"]
                             )
+            logging.info("Waiting...")
+            time.sleep(30)
 
 def main() -> None:
     """Instanciate a translator bot and runs it."""
