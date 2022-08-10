@@ -155,8 +155,11 @@ class TranslatorTwitterBot:
     def check_mentions(self) -> Dict[str, str]:
         """The bot check its mentions timeline and collect\
         all the needed informations to perform his task."""
-        mentions: str = list(self.api.mentions_timeline(count = 1,
-                                                            tweet_mode='extended'))
+        try:
+            mentions: str = list(self.api.mentions_timeline(count = 1,
+                                                                tweet_mode='extended'))
+        except:
+            return None
         if not mentions:
             return None
         last_mention = mentions[0]
@@ -165,8 +168,6 @@ class TranslatorTwitterBot:
                                                                 tweet_mode="extended")
             mention_username: str = last_mention.user.screen_name
             mention_userid: int = last_mention.user.id_str
-            if self.api.get_user(mention_userid).protected:
-                return None
             src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
             source_text_tweet: str = source_tweet_status.full_text.strip()
             tweet_id_str: str = last_mention.id_str
