@@ -229,12 +229,11 @@ class TranslatorTwitterBot:
         last_reply = None
         while True:
             logging.info("Waiting...")
-            time.sleep(50)
+            time.sleep(30)
             mention_data = self.check_mentions()
             if not mention_data :
                 continue
             if re.sub("\B\@\w+", "", mention_data["translate_this_text"]).strip():
-                time.sleep(15)
                 continue
             traslated_tweet = self.translate(
                                 src_language=mention_data["src_language"],
