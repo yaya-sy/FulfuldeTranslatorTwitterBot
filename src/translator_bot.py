@@ -164,7 +164,10 @@ class TranslatorTwitterBot:
             source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
                                                                 tweet_mode="extended")
             mention_username: str = last_mention.user.screen_name
-            src, tgt = self.get_src_tgt_languages(source_tweet_status, last_mention.user.id_str)
+            mention_userid: int = last_mention.user.id_str
+            if self.api.get_user(mention_userid).protected:
+                return None
+            src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
             source_text_tweet: str = source_tweet_status.full_text.strip()
             tweet_id_str: str = last_mention.id_str
 
