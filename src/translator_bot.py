@@ -162,7 +162,6 @@ class TranslatorTwitterBot:
             return None
         last_mention = mentions[0]
         if re.sub("\B\@\w+", "", last_mention.full_text).strip():
-            print(">>", re.sub("\B\@\w+", "", last_mention.full_text).strip())
             return None
         if last_mention.in_reply_to_status_id:
             source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
@@ -171,7 +170,6 @@ class TranslatorTwitterBot:
             mention_userid: int = last_mention.user.id_str
             src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
             source_text_tweet: str = source_tweet_status.full_text.strip()
-            print("@@@", source_tweet_status.text.strip())
             tweet_id_str: str = last_mention.id_str
 
             return {
@@ -179,7 +177,7 @@ class TranslatorTwitterBot:
                 "tgt_language" : tgt,
                 "reply_to_this_username" : mention_username,
                 "reply_to_this_tweet" : tweet_id_str,
-                "translate_this_text" : source_text_tweet
+                "translate_this_text" : re.sub("\B\@\w+", "", source_text_tweet).strip()
             }
 
     def translate(self, src_language: str, tgt_language: str, text_to_translate: str) -> str:
