@@ -228,10 +228,13 @@ class TranslatorTwitterBot:
         """Run the bot by calling all the necessary functions here!"""
         last_reply = None
         while True:
+            logging.info("Waiting...")
+            time.sleep(50)
             mention_data = self.check_mentions()
-            if re.sub("\B\@\w+", "", mention_data["translate_this_text"]).strip():
-                continue
             if not mention_data :
+                continue
+            if re.sub("\B\@\w+", "", mention_data["translate_this_text"]).strip():
+                time.sleep(15)
                 continue
             traslated_tweet = self.translate(
                                 src_language=mention_data["src_language"],
@@ -244,8 +247,6 @@ class TranslatorTwitterBot:
                             text_to_reply=traslated_tweet,
                             tweet_to_reply=mention_data["reply_to_this_tweet"]
                             )
-            logging.info("Waiting...")
-            time.sleep(15)
 
 def main() -> None:
     """Instanciate a translator bot and runs it."""
