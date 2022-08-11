@@ -168,7 +168,8 @@ class TranslatorTwitterBot:
             source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
                                                                 tweet_mode="extended")
             mention_username: str = last_mention.user.screen_name
-            print("Respond to this username: ", mention_username)
+            if mention_username == "firtanam_":
+                return None
             mention_userid: int = last_mention.user.id_str
             src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
             source_text_tweet: str = source_tweet_status.full_text.strip()
@@ -185,13 +186,15 @@ class TranslatorTwitterBot:
     def translate(self, src_language: str, tgt_language: str, text_to_translate: str) -> str:
         """Translate a given text from source language to a target language."""
 
-        inputs = {"data": [text_to_translate, src_language, tgt_language, 250]}
-        response = requests.post("https://hf.space/embed/yaya-sy/FulfuldeTranslator/+/api/predict",
-                                json=inputs)
-        try : 
-            return response.json()["data"][0]
-        except :
-            return None
+        inputs = {"data": [text_to_translate, src_language, tgt_language, 270]}
+        for _ in range(10) :
+            try:
+                response = requests.post("https://hf.space/embed/yaya-sy/FulfuldeTranslator/+/api/predict",
+                                        json=inputs)
+                return response.json()["data"][0]
+            except:
+                continue
+        return "Mi ronkii firtude 🥲"
         
         
     def rereply_to_the_tweet(self,
@@ -213,18 +216,13 @@ class TranslatorTwitterBot:
         - str:
             The tweet id for which to reply.
         """
-        text_to_reply = re.sub("@firtanam_", "", text_to_reply)
-        text_to_reply.strip()
-        text_to_reply = re.sub(' +', ' ', text_to_reply)
-
         try:
             self.api.update_status(status=text_to_reply,
                                     in_reply_to_status_id=tweet_to_reply,
                                     auto_populate_reply_metadata=True)
             return tweet_to_reply
         except:
-            print("N'a pas pû répondre ce tweet: ", text_to_reply)
-            return tweet_to_reply
+            return None
     
     def run_bot(self) -> None:
         """Run the bot by calling all the necessary functions here!"""
