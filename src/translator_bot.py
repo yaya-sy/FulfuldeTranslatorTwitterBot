@@ -169,6 +169,7 @@ class TranslatorTwitterBot:
                                                                 tweet_mode="extended")
             mention_username: str = last_mention.user.screen_name
             if mention_username == "firtanam_":
+                print("self mentionning!!")
                 return None
             mention_userid: int = last_mention.user.id_str
             src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
