@@ -2,7 +2,8 @@
 
 # imports standard python libraries
 import random
-from typing import Union, List, Tuple, Iterator
+from random import shuffle
+from typing import Union, Tuple, Iterator
 import json
 import logging
 from pathlib import Path
@@ -114,8 +115,10 @@ class NGramLanguageModel:
             The filename of the model.
         """
         LOGGER.info("Saving the model...")
-        model = {" ".join(ngram) : dict(next_token)
-                    for ngram, next_token in self.ngram_counter.items()}
+        model = [(" ".join(ngram), dict(next_token))
+                    for ngram, next_token in self.ngram_counter.items()]
+        shuffle(model)
+        model = dict(model)
         model["language"] = self.language
         model["pad_utterances"] = self.pad_utterances
         model["denominator_smoother"] = self.denominator_smoother

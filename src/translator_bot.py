@@ -47,6 +47,7 @@ class TranslatorTwitterBot:
                     api_secret_key: str,
                     access_token: str,
                     secret_access_token: str,
+                    translator: str,
                     ngram_models_folder: str):
 
             self.languages: Dict[str, str]  = {
@@ -59,6 +60,7 @@ class TranslatorTwitterBot:
             self.api_secret_key: str = api_secret_key
             self.access_token: str = access_token
             self.secret_access_token: str = secret_access_token
+            self.translator = translator
             self.ngram_models = [NGramLanguageModel() for _ in self.languages]
             trained_models = list(Path(ngram_models_folder).glob("*.json"))
             self.since_id = 0
@@ -184,13 +186,13 @@ class TranslatorTwitterBot:
                 "translate_this_text" : source_text_tweet
             }
 
-    def request_post(self, src_language: str, tgt_language: str, text_to_translate: str) -> str:
+    def translate(self, src_language: str, tgt_language: str, text_to_translate: str) -> str:
         """Request translation of given text from source language to a target language."""
 
         inputs = {"data": [text_to_translate, src_language, tgt_language, 270]}
         for _ in range(10) :
             try:
-                response = requests.post("https://hf.space/embed/yaya-sy/FulfuldeTranslator/+/api/predict",
+                response = requests.post(self.translator,
                                         json=inputs)
                 return response.json()["data"][0]
             except:
@@ -256,6 +258,7 @@ def main() -> None:
                         api_secret_key=os.environ["api_secret_key"],
                         access_token=os.environ["access_token"],
                         secret_access_token=os.environ["secret_access_token"],
+                        translator=os.environ["translator"],
                         ngram_models_folder="ngram_language_models"
                     )
     translator_bot.run_bot()
