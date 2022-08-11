@@ -233,12 +233,14 @@ class TranslatorTwitterBot:
         last_reply = None
         since_id = 0
         while True:
+            logging.info("Waiting...")
             time.sleep(15)
             for mention in Cursor(self.api.mentions_timeline,
                                     since_id=since_id,
                                     tweet_mode='extended').items():
                 mention_data = self.get_status_data(mention)
                 if not mention_data :
+                    logging.info("Waiting...")
                     time.sleep(15)
                     continue
                 since_id = max(since_id, mention_data["reply_to_this_tweet"])
@@ -248,6 +250,7 @@ class TranslatorTwitterBot:
                                     text_to_translate=mention_data["translate_this_text"]
                                     )
                 if mention_data["reply_to_this_tweet"] == last_reply:
+                    logging.info("Waiting...")
                     time.sleep(15)
                     continue
                 last_reply = self.rereply_to_the_tweet(
