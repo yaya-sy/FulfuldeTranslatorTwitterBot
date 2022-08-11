@@ -161,8 +161,8 @@ class TranslatorTwitterBot:
         if not mentions:
             return None
         last_mention = mentions[0]
+        # not reply to empty tweet
         if re.sub("\B\@\w+", "", last_mention.full_text).strip():
-            print("@@@", re.sub("\B\@\w+", "", last_mention.full_text).strip())
             return None
         if last_mention.in_reply_to_status_id:
             source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
@@ -184,8 +184,8 @@ class TranslatorTwitterBot:
                 "translate_this_text" : source_text_tweet
             }
 
-    def translate(self, src_language: str, tgt_language: str, text_to_translate: str) -> str:
-        """Translate a given text from source language to a target language."""
+    def request_post(self, src_language: str, tgt_language: str, text_to_translate: str) -> str:
+        """Request translation of given text from source language to a target language."""
 
         inputs = {"data": [text_to_translate, src_language, tgt_language, 270]}
         for _ in range(10) :
@@ -233,8 +233,7 @@ class TranslatorTwitterBot:
             if not mention_data :
                 time.sleep(30)
                 continue
-            print(">> to translate", mention_data["translate_this_text"])
-            traslated_tweet = self.translate(
+            traslated_tweet = self.request_post(
                                 src_language=mention_data["src_language"],
                                 tgt_language=mention_data["tgt_language"],
                                 text_to_translate=mention_data["translate_this_text"]
