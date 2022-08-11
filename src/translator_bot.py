@@ -231,7 +231,7 @@ class TranslatorTwitterBot:
     def run_bot(self) -> None:
         """Run the bot by calling all the necessary functions here!"""
         last_reply = None
-        since_id = 0
+        since_id = 1557862383384940544
         while True:
             for mention in Cursor(self.api.mentions_timeline,
                                     since_id=since_id,
