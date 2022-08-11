@@ -233,8 +233,8 @@ class TranslatorTwitterBot:
             time.sleep(15)
             for mention in Cursor(self.api.mentions_timeline,
                                     count = 1,
-                                    tweet_mode='extended'):
-                                    
+                                    tweet_mode='extended').items():
+
                 mention_data = self.get_status_data(mention)
                 if not mention_data :
                     time.sleep(15)
