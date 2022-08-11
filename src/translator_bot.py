@@ -10,6 +10,7 @@ import time
 import logging
 from collections import Counter
 import re
+from math import inf
 
 # installed packages
 import requests
@@ -172,13 +173,14 @@ class TranslatorTwitterBot:
             mention_userid: int = status.user.id_str
             src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
             source_text_tweet: str = source_tweet_status.full_text.strip()
-            tweet_id_str: str = status.id_str
+            tweet_id: int = status.id
 
             return {
                 "src_language" : src,
                 "tgt_language" : tgt,
+                "tweet_id" : status.id,
                 "reply_to_this_username" : mention_username,
-                "reply_to_this_tweet" : tweet_id_str,
+                "reply_to_this_tweet" : tweet_id,
                 "translate_this_text" : source_text_tweet
             }
 
@@ -229,15 +231,16 @@ class TranslatorTwitterBot:
     def run_bot(self) -> None:
         """Run the bot by calling all the necessary functions here!"""
         last_reply = None
+        since_id = 0
         while True:
             time.sleep(15)
             for mention in Cursor(self.api.mentions_timeline,
                                     tweet_mode='extended').items():
-
                 mention_data = self.get_status_data(mention)
                 if not mention_data :
                     time.sleep(15)
                     continue
+                since_id = max(since_id, mention_data["reply_to_this_tweet"])
                 traslated_tweet = self.translate(
                                     src_language=mention_data["src_language"],
                                     tgt_language=mention_data["tgt_language"],
