@@ -168,6 +168,7 @@ class TranslatorTwitterBot:
             source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
                                                                 tweet_mode="extended")
             mention_username: str = last_mention.user.screen_name
+            print("Respond to this username: ", mention_username)
             mention_userid: int = last_mention.user.id_str
             src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
             source_text_tweet: str = source_tweet_status.full_text.strip()
@@ -222,7 +223,7 @@ class TranslatorTwitterBot:
                                     auto_populate_reply_metadata=True)
             return tweet_to_reply
         except:
-            print("N'a pas pû répondre")
+            print("N'a pas pû répondre ce tweet: ", text_to_reply)
             return tweet_to_reply
     
     def run_bot(self) -> None:
