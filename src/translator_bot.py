@@ -168,8 +168,8 @@ class TranslatorTwitterBot:
             source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
                                                                 tweet_mode="extended")
             mention_username: str = last_mention.user.screen_name
+            # self mentionning
             if mention_username == "firtanam_":
-                print("self mentionning!!")
                 return None
             mention_userid: int = last_mention.user.id_str
             src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
