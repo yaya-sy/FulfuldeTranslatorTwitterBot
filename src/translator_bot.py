@@ -202,13 +202,16 @@ class TranslatorTwitterBot:
         
     def rereply_to_the_tweet(self,
                                 text_to_reply: str,
-                                tweet_to_reply: str) -> str:
+                                tweet_to_reply: str,
+                                usernam_to_reply: str) -> str:
         """
         Function that reply to a given tweet by mentioning\
         the user of the tweet.
 
         Parameters
         ----------
+        - usernam_to_reply: str
+            The username to whic reply
         - text_to_reply: str
             The text to reply to the user.
         - tweet_to_reply: str
@@ -220,9 +223,9 @@ class TranslatorTwitterBot:
             The tweet id for which to reply.
         """
         try:
-            self.api.update_status(status=text_to_reply,
+            self.api.update_status(status=f"@{usernam_to_reply} {text_to_reply}",
                                     in_reply_to_status_id=tweet_to_reply,
-                                    auto_populate_reply_metadata=True)
+                                    auto_populate_reply_metadata=False)
             return tweet_to_reply
         except:
             return None
@@ -235,7 +238,7 @@ class TranslatorTwitterBot:
             if not mention_data :
                 time.sleep(30)
                 continue
-            traslated_tweet = self.request_post(
+            traslated_tweet = self.translate(
                                 src_language=mention_data["src_language"],
                                 tgt_language=mention_data["tgt_language"],
                                 text_to_translate=mention_data["translate_this_text"]
@@ -245,7 +248,8 @@ class TranslatorTwitterBot:
                 continue
             last_reply = self.rereply_to_the_tweet(
                             text_to_reply=traslated_tweet,
-                            tweet_to_reply=mention_data["reply_to_this_tweet"]
+                            tweet_to_reply=mention_data["reply_to_this_tweet"],
+                            usernam_to_reply=mention_data["reply_to_this_username"]
                             )
             logging.info("Waiting...")
             time.sleep(30)
