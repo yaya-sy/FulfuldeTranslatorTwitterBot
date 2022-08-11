@@ -222,6 +222,7 @@ class TranslatorTwitterBot:
                                     auto_populate_reply_metadata=True)
             return tweet_to_reply
         except:
+            print("N'a pas pû répondre")
             return tweet_to_reply
     
     def run_bot(self) -> None:
