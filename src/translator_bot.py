@@ -234,7 +234,7 @@ class TranslatorTwitterBot:
         since_id = 0
         while True:
             for mention in Cursor(self.api.mentions_timeline,
-                                    count=1,
+                                    since_id=since_id,
                                     tweet_mode='extended').items():
                 mention_data = self.get_status_data(mention)
                 if not mention_data :
