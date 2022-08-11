@@ -15,6 +15,7 @@ import re
 import requests
 import tweepy
 from tweepy.models import Status
+from tweepy import Cursor
 
 # local modules
 from ngram_lm import NGramLanguageModel
@@ -155,28 +156,23 @@ class TranslatorTwitterBot:
             tgt: str = self.languages[tgt]
         return src, tgt
 
-    def check_mentions(self) -> Dict[str, str]:
+    def get_status_data(self, status) -> Dict[str, str]:
         """The bot check its mentions timeline and collect\
         all the needed informations to perform his task."""
-        mentions: str = list(self.api.mentions_timeline(count = 1,
-                                                            tweet_mode='extended'))
-        if not mentions:
-            return None
-        last_mention = mentions[0]
         # not reply to empty tweet
-        if re.sub("\B\@\w+", "", last_mention.full_text).strip():
+        if re.sub("\B\@\w+", "", status.full_text).strip():
             return None
-        if last_mention.in_reply_to_status_id:
-            source_tweet_status: Status = self.api.get_status(last_mention.in_reply_to_status_id,
+        if status.in_reply_to_status_id:
+            source_tweet_status: Status = self.api.get_status(status.in_reply_to_status_id,
                                                                 tweet_mode="extended")
-            mention_username: str = last_mention.user.screen_name
+            mention_username: str = status.user.screen_name
             # self mentionning
             if mention_username == "firtanam_":
                 return None
-            mention_userid: int = last_mention.user.id_str
+            mention_userid: int = status.user.id_str
             src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
             source_text_tweet: str = source_tweet_status.full_text.strip()
-            tweet_id_str: str = last_mention.id_str
+            tweet_id_str: str = status.id_str
 
             return {
                 "src_language" : src,
@@ -234,25 +230,28 @@ class TranslatorTwitterBot:
         """Run the bot by calling all the necessary functions here!"""
         last_reply = None
         while True:
-            mention_data = self.check_mentions()
-            if not mention_data :
-                time.sleep(30)
-                continue
-            traslated_tweet = self.translate(
-                                src_language=mention_data["src_language"],
-                                tgt_language=mention_data["tgt_language"],
-                                text_to_translate=mention_data["translate_this_text"]
+            time.sleep(15)
+            for mention in Cursor(self.api.mentions_timeline(count = 1,
+                                                            tweet_mode='extended')):
+                mention_data = self.get_status_data(mention)
+                if not mention_data :
+                    time.sleep(15)
+                    continue
+                traslated_tweet = self.translate(
+                                    src_language=mention_data["src_language"],
+                                    tgt_language=mention_data["tgt_language"],
+                                    text_to_translate=mention_data["translate_this_text"]
+                                    )
+                if mention_data["reply_to_this_tweet"] == last_reply:
+                    time.sleep(15)
+                    continue
+                last_reply = self.rereply_to_the_tweet(
+                                text_to_reply=traslated_tweet,
+                                tweet_to_reply=mention_data["reply_to_this_tweet"],
+                                usernam_to_reply=mention_data["reply_to_this_username"]
                                 )
-            if mention_data["reply_to_this_tweet"] == last_reply or not traslated_tweet:
-                time.sleep(30)
-                continue
-            last_reply = self.rereply_to_the_tweet(
-                            text_to_reply=traslated_tweet,
-                            tweet_to_reply=mention_data["reply_to_this_tweet"],
-                            usernam_to_reply=mention_data["reply_to_this_username"]
-                            )
-            logging.info("Waiting...")
-            time.sleep(30)
+                logging.info("Waiting...")
+                time.sleep(15)
 
 def main() -> None:
     """Instanciate a translator bot and runs it."""
