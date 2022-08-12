@@ -43,6 +43,8 @@ class TranslatorTwitterBot:
         The access token for the twitter API.
     - secret_access_token: str
         The secret token for the twitter API.
+    - translator: str
+        The translator model.
     """
     def __init__(self,
                     api_key: str,
@@ -131,6 +133,8 @@ class TranslatorTwitterBot:
         - tweet_status: Status
             The tweet for which to determine the translation direction\
             for translating it.
+        - user_id: int
+            The user that produced the tweet.
             
         Returns
         -------
@@ -144,8 +148,7 @@ class TranslatorTwitterBot:
             src: str = self.languages[language]
             tgt: str = "fuv_Latn"
         else :
-            # we assume the source language of the tweet to translate
-            # is in Fulfulde
+            # identify the source language
             src: str = self.language_identifier(tweet_status.full_text.strip())
             src: str = self.languages[src]
             tgt: str = self.get_user_language(user_id)
@@ -158,16 +161,17 @@ class TranslatorTwitterBot:
         return src, tgt
 
     def get_status_data(self, status) -> Dict[str, str]:
-        """The bot check its mentions timeline and collect\
+        """The bot checks its mentions timeline and collect\
         all the needed informations to perform his task."""
-        # not reply to empty tweet
+
+        # not reply to not empty tweet.
         if re.sub("\B\@\w+", "", status.full_text).strip():
             return None
         if status.in_reply_to_status_id:
             source_tweet_status: Status = self.api.get_status(status.in_reply_to_status_id,
                                                                 tweet_mode="extended")
             mention_username: str = status.user.screen_name
-            # self mentionning
+            # not reply to self mentionning
             if mention_username == "firtanam_":
                 return None
             src, tgt = self.get_src_tgt_languages(source_tweet_status, status.user.id_str)
@@ -206,7 +210,7 @@ class TranslatorTwitterBot:
         Parameters
         ----------
         - usernam_to_reply: str
-            The username to whic reply
+            The username to which reply.
         - text_to_reply: str
             The text to reply to the user.
         - tweet_to_reply: str
@@ -228,7 +232,7 @@ class TranslatorTwitterBot:
     def run_bot(self) -> None:
         """Run the bot by calling all the necessary functions here!"""
         last_reply = None
-        since_id = 1558080765761658881
+        since_id = 1558091762471673857
         while True:
             for mention in Cursor(self.api.mentions_timeline,
                                     since_id=since_id,
