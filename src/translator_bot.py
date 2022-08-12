@@ -231,7 +231,7 @@ class TranslatorTwitterBot:
     def run_bot(self) -> None:
         """Run the bot by calling all the necessary functions here!"""
         last_reply = None
-        since_id = 1557862383384940544
+        since_id = 1557881826768834560
         while True:
             for mention in Cursor(self.api.mentions_timeline,
                                     since_id=since_id,
@@ -241,7 +241,7 @@ class TranslatorTwitterBot:
                     logging.info("Waiting...")
                     time.sleep(15)
                     continue
-                since_id = max(since_id, mention_data["reply_to_this_tweet"])
+                since_id = max(since_id, mention.id)
                 traslated_tweet = self.translate(
                                     src_language=mention_data["src_language"],
                                     tgt_language=mention_data["tgt_language"],
