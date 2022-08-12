@@ -227,12 +227,12 @@ class TranslatorTwitterBot:
                                     auto_populate_reply_metadata=True)
             return tweet_to_reply
         except:
+            logging.info(f"Could not reply this: {text_to_reply}")
             return None
     
     def run_bot(self) -> None:
         """Run the bot by calling all the necessary functions here!"""
-        last_reply = None
-        since_id = 1558091762471673857
+        since_id = 1558120125684924417
         while True:
             for mention in Cursor(self.api.mentions_timeline,
                                     since_id=since_id,
@@ -240,7 +240,7 @@ class TranslatorTwitterBot:
                 since_id = max(since_id, mention.id)
                 mention_data = self.get_status_data(mention)
                 if not mention_data :
-                    logging.info("Waiting...")
+                    logging.info("No tweet to translate. Waiting...")
                     time.sleep(15)
                     continue
                 traslated_tweet = self.translate(
@@ -248,16 +248,12 @@ class TranslatorTwitterBot:
                                     tgt_language=mention_data["tgt_language"],
                                     text_to_translate=mention_data["translate_this_text"]
                                     )
-                if mention_data["reply_to_this_tweet"] == last_reply:
-                    logging.info("Waiting...")
-                    time.sleep(15)
-                    continue
-                last_reply = self.rereply_to_the_tweet(
-                                text_to_reply=traslated_tweet,
-                                tweet_to_reply=mention_data["reply_to_this_tweet"],
-                                usernam_to_reply=mention_data["reply_to_this_username"]
-                                )
-            logging.info("Waiting...")
+                self.rereply_to_the_tweet(
+                    text_to_reply=traslated_tweet,
+                    tweet_to_reply=mention_data["reply_to_this_tweet"],
+                    usernam_to_reply=mention_data["reply_to_this_username"]
+                    )
+            logging.info("No mentions. Waiting...")
             time.sleep(15)
 
 def main() -> None:
