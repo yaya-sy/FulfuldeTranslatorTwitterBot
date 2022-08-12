@@ -227,7 +227,7 @@ class TranslatorTwitterBot:
                                     auto_populate_reply_metadata=True)
             return tweet_to_reply
         except:
-            logging.info(f"Could not reply this: {text_to_reply}")
+            logging.info(f"Could not reply this: {text_to_reply}, length: {len(text_to_reply)}")
             return None
     
     def run_bot(self) -> None:
