@@ -236,12 +236,12 @@ class TranslatorTwitterBot:
             for mention in Cursor(self.api.mentions_timeline,
                                     since_id=since_id,
                                     tweet_mode='extended').items():
+                since_id = max(since_id, mention.id)
                 mention_data = self.get_status_data(mention)
                 if not mention_data :
                     logging.info("Waiting...")
                     time.sleep(15)
                     continue
-                since_id = max(since_id, mention.id)
                 traslated_tweet = self.translate(
                                     src_language=mention_data["src_language"],
                                     tgt_language=mention_data["tgt_language"],
