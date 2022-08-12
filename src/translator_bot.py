@@ -170,17 +170,14 @@ class TranslatorTwitterBot:
             # self mentionning
             if mention_username == "firtanam_":
                 return None
-            mention_userid: int = status.user.id_str
-            src, tgt = self.get_src_tgt_languages(source_tweet_status, mention_userid)
+            src, tgt = self.get_src_tgt_languages(source_tweet_status, status.user.id_str)
             source_text_tweet: str = source_tweet_status.full_text.strip()
-            tweet_id: int = status.id
 
             return {
                 "src_language" : src,
                 "tgt_language" : tgt,
-                "tweet_id" : status.id,
                 "reply_to_this_username" : mention_username,
-                "reply_to_this_tweet" : tweet_id,
+                "reply_to_this_tweet" : status.id,
                 "translate_this_text" : source_text_tweet
             }
 
@@ -223,7 +220,7 @@ class TranslatorTwitterBot:
         try:
             self.api.update_status(status=f"@{usernam_to_reply} {text_to_reply}",
                                     in_reply_to_status_id=tweet_to_reply,
-                                    auto_populate_reply_metadata=False)
+                                    auto_populate_reply_metadata=True)
             return tweet_to_reply
         except:
             return None
@@ -231,7 +228,7 @@ class TranslatorTwitterBot:
     def run_bot(self) -> None:
         """Run the bot by calling all the necessary functions here!"""
         last_reply = None
-        since_id = 1557881826768834560
+        since_id = 1558080765761658881
         while True:
             for mention in Cursor(self.api.mentions_timeline,
                                     since_id=since_id,
