@@ -3,7 +3,8 @@
     other direction too"""
 
 # python standard packages
-from typing import Tuple, Dict
+from itertools import count
+from typing import Tuple, Dict, List
 import os
 from pathlib import Path
 import time
@@ -159,6 +160,20 @@ class TranslatorTwitterBot:
                 return src, tgt
             tgt: str = self.languages[tgt]
         return src, tgt
+    
+    def get_already_replied_mentions(self) -> list:
+        """Collect mentions alread replied byt the bot."""
+        replied_to: List[int] = []
+        for status in self.api.user_timeline(screen_name="firtanam_",
+                                                count=3_000,
+                                                exclude_replies=False,
+                                                since_id=1558503813375528960):
+                
+            if status.in_reply_to_status_id:
+                replied : Status = self.api.get_status(status.in_reply_to_status_id,
+                                                        tweet_mode="extended")
+                replied_to.append(replied.id)
+        return replied_to
 
     def get_status_data(self, status) -> Dict[str, str]:
         """The bot checks its mentions timeline and collect\
@@ -236,10 +251,15 @@ class TranslatorTwitterBot:
     def run_bot(self) -> None:
         """Run the bot by calling all the necessary functions here!"""
         since_id = 1558459966926848000
+        first_pass = True
+        already_replied_mentions = self.get_already_replied_mentions()
         while True:
             for mention in Cursor(self.api.mentions_timeline,
                                     since_id=since_id,
                                     tweet_mode='extended').items():
+                if (mention.id in already_replied_mentions) and first_pass:
+                    since_id = mention.id
+                    continue
                 since_id = max(since_id, mention.id)
                 mention_data = self.get_status_data(mention)
                 if not mention_data :
@@ -256,6 +276,7 @@ class TranslatorTwitterBot:
                     tweet_to_reply=mention_data["reply_to_this_tweet"],
                     usernam_to_reply=mention_data["reply_to_this_username"]
                     )
+                already_replied_mentions.append(mention.id)
             logging.info("No mentions. Waiting...")
             time.sleep(15)
 
