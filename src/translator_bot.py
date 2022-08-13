@@ -221,6 +221,9 @@ class TranslatorTwitterBot:
         - str:
             The tweet id for which to reply.
         """
+        text_to_reply = f"@{usernam_to_reply} {text_to_reply}"
+        if len(text_to_reply) > 280:
+            text_to_reply = text_to_reply[:280]
         try:
             self.api.update_status(status=f"@{usernam_to_reply} {text_to_reply}",
                                     in_reply_to_status_id=tweet_to_reply,
@@ -232,7 +235,7 @@ class TranslatorTwitterBot:
     
     def run_bot(self) -> None:
         """Run the bot by calling all the necessary functions here!"""
-        since_id = 1558120125684924417
+        since_id = 1558459966926848000
         while True:
             for mention in Cursor(self.api.mentions_timeline,
                                     since_id=since_id,
