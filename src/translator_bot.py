@@ -3,7 +3,7 @@
     other direction too"""
 
 # python standard packages
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 import os
 from pathlib import Path
 import time
@@ -159,6 +159,17 @@ class TranslatorTwitterBot:
                 return src, tgt
             tgt: str = self.languages[tgt]
         return src, tgt
+    
+    def get_already_replied_mentions(self):
+        """Get mentions already replied by the bot"""
+        already_replied_mentions: List[int] = []
+        for status in self.api.user_timeline(count=3_000,
+                                                screen_name="firtanam_"):
+            if status.in_reply_to_status_id:
+                source_tweet_status: Status = self.api.get_status(status.in_reply_to_status_id,
+                                                                tweet_mode="extended")
+                already_replied_mentions.append(source_tweet_status.id)
+        return already_replied_mentions
 
     def get_status_data(self, status) -> Dict[str, str]:
         """The bot checks its mentions timeline and collect\
@@ -233,11 +244,17 @@ class TranslatorTwitterBot:
     def run_bot(self) -> None:
         """Run the bot by calling all the necessary functions here!"""
         since_id = 1558120125684924417
+        first_pass = True
+        already_replied_mentions = self.get_already_replied_mentions()
         while True:
             for mention in Cursor(self.api.mentions_timeline,
                                     since_id=since_id,
                                     tweet_mode='extended').items():
-                since_id = max(since_id, mention.id)
+                mention_id = mention.id
+                if (mention_id in already_replied_mentions) and first_pass:
+                    logging.info(f"Already replied to this mention: {mention_id}")
+                    continue
+                since_id = max(since_id, mention_id)
                 mention_data = self.get_status_data(mention)
                 if not mention_data :
                     logging.info("No tweet to translate. Waiting...")
