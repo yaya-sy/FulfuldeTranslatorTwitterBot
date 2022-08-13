@@ -253,6 +253,7 @@ class TranslatorTwitterBot:
         since_id = 1558459966926848000
         first_pass = True
         already_replied_mentions = self.get_already_replied_mentions()
+        print(len(already_replied_mentions), already_replied_mentions)
         while True:
             for mention in Cursor(self.api.mentions_timeline,
                                     since_id=since_id,
