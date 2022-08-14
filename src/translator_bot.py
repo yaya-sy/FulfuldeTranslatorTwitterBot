@@ -239,8 +239,10 @@ class TranslatorTwitterBot:
         - str:
             The tweet id for which to reply.
         """
+        if len(text_to_reply) > 280:
+            text_to_reply = text_to_reply[:260]
         try:
-            self.api.update_status(status=f"@{usernam_to_reply} {text_to_reply}",
+            self.api.update_status(status=text_to_reply,
                                     in_reply_to_status_id=tweet_to_reply,
                                     auto_populate_reply_metadata=True)
             return tweet_to_reply
