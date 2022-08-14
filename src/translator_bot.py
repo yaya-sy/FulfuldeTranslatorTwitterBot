@@ -262,7 +262,8 @@ class TranslatorTwitterBot:
                 condition_to_skeep_this_mention: bool = ((mention_id in already_replied_mentions) or
                                                         (re.sub("\B\@\w+", "", mention.full_text).strip()))
                 if condition_to_skeep_this_mention:
-                    logging.info(f"Already replied to this mention: {mention_id}")
+                    logging.info(f"Already replied to this mention: {mention_id}. Waiting ...")
+                    time.sleep(5)
                     continue
                 since_id = max(since_id, mention_id)
                 mention_data = self.get_status_data(mention)
