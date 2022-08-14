@@ -275,9 +275,7 @@ class TranslatorTwitterBot:
                                     )
                 self.rereply_to_the_tweet(
                     text_to_reply=traslated_tweet,
-                    tweet_to_reply=mention_data["reply_to_this_tweet"],
-                    usernam_to_reply=mention_data["reply_to_this_username"]
-                    )
+                    tweet_to_reply=mention_data["reply_to_this_tweet"])
             logging.info("No mentions. Waiting...")
             time.sleep(15)
 
