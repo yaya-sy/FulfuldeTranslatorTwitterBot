@@ -166,9 +166,13 @@ class TranslatorTwitterBot:
         for status in self.api.user_timeline(count=3_000,
                                                 screen_name="firtanam_"):
             if status.in_reply_to_status_id:
-                source_tweet_status: Status = self.api.get_status(status.in_reply_to_status_id,
-                                                                tweet_mode="extended")
-                already_replied_mentions.append(source_tweet_status.id)
+                try:
+                    source_tweet_status: Status = self.api.get_status(
+                        status.in_reply_to_status_id,
+                        tweet_mode="extended")
+                    already_replied_mentions.append(source_tweet_status.id)
+                except:
+                    continue
         return already_replied_mentions
 
     def get_status_data(self, status) -> Dict[str, str]:
@@ -179,8 +183,11 @@ class TranslatorTwitterBot:
         if re.sub("\B\@\w+", "", status.full_text).strip():
             return None
         if status.in_reply_to_status_id:
-            source_tweet_status: Status = self.api.get_status(status.in_reply_to_status_id,
-                                                                tweet_mode="extended")
+            try:
+                source_tweet_status: Status = self.api.get_status(status.in_reply_to_status_id,
+                                                                    tweet_mode="extended")
+            except:
+                return None
             mention_username: str = status.user.screen_name
             # not reply to self mentionning
             if mention_username == "firtanam_":
