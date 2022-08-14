@@ -219,7 +219,7 @@ class TranslatorTwitterBot:
         return "Mi ronkii firtude 🥲"
         
         
-    def rereply_to_the_tweet(self,
+    def reply_to_the_tweet(self,
                                 text_to_reply: str,
                                 tweet_to_reply: str) -> str:
         """
@@ -259,7 +259,9 @@ class TranslatorTwitterBot:
                                     since_id=since_id,
                                     tweet_mode='extended').items():
                 mention_id = mention.id
-                if (mention_id in already_replied_mentions):
+                condition_to_skeep_this_mention: bool = ((mention_id in already_replied_mentions) or
+                                                        (re.sub("\B\@\w+", "", mention.full_text).strip()))
+                if condition_to_skeep_this_mention:
                     logging.info(f"Already replied to this mention: {mention_id}")
                     continue
                 since_id = max(since_id, mention_id)
@@ -273,7 +275,7 @@ class TranslatorTwitterBot:
                                     tgt_language=mention_data["tgt_language"],
                                     text_to_translate=mention_data["translate_this_text"]
                                     )
-                self.rereply_to_the_tweet(
+                self.reply_to_the_tweet(
                     text_to_reply=traslated_tweet,
                     tweet_to_reply=mention_data["reply_to_this_tweet"])
             logging.info("No mentions. Waiting...")
