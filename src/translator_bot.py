@@ -3,7 +3,7 @@
     other direction too"""
 
 # python standard packages
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, Set
 import os
 from pathlib import Path
 import time
@@ -161,16 +161,17 @@ class TranslatorTwitterBot:
         return src, tgt
     
     def get_already_replied_mentions(self):
-        """Get mentions already replied by the bot"""
-        already_replied_mentions: List[int] = []
+        """Get mentions already replied by the bot."""
+        already_replied_mentions: Set[int] = set()
         for status in self.api.user_timeline(count=3_000,
                                                 screen_name="firtanam_"):
             if status.in_reply_to_status_id:
+                # handle deleted tweet, private accounts, etc.
                 try:
                     source_tweet_status: Status = self.api.get_status(
-                        status.in_reply_to_status_id,
-                        tweet_mode="extended")
-                    already_replied_mentions.append(source_tweet_status.id)
+                                                    status.in_reply_to_status_id,
+                                                    tweet_mode="extended")
+                    already_replied_mentions.add(source_tweet_status.id)
                 except:
                     continue
         return already_replied_mentions
@@ -184,6 +185,7 @@ class TranslatorTwitterBot:
             return None
         if status.in_reply_to_status_id:
             try:
+                # handle remove tweets, provate accounts, etd.
                 source_tweet_status: Status = self.api.get_status(status.in_reply_to_status_id,
                                                                     tweet_mode="extended")
             except:
@@ -219,16 +221,13 @@ class TranslatorTwitterBot:
         
     def rereply_to_the_tweet(self,
                                 text_to_reply: str,
-                                tweet_to_reply: str,
-                                usernam_to_reply: str) -> str:
+                                tweet_to_reply: str) -> str:
         """
         Function that reply to a given tweet by mentioning\
         the user of the tweet.
 
         Parameters
         ----------
-        - usernam_to_reply: str
-            The username to which reply.
         - text_to_reply: str
             The text to reply to the user.
         - tweet_to_reply: str
@@ -239,6 +238,7 @@ class TranslatorTwitterBot:
         - str:
             The tweet id for which to reply.
         """
+        # to long tweet
         if len(text_to_reply) > 280:
             text_to_reply = text_to_reply[:260]
         try:
@@ -253,20 +253,19 @@ class TranslatorTwitterBot:
     def run_bot(self) -> None:
         """Run the bot by calling all the necessary functions here!"""
         since_id = 1558120125684924417
-        first_pass = True
-        already_replied_mentions = self.get_already_replied_mentions()
+        already_replied_mentions: Set[int] = self.get_already_replied_mentions()
         while True:
             for mention in Cursor(self.api.mentions_timeline,
                                     since_id=since_id,
                                     tweet_mode='extended').items():
                 mention_id = mention.id
-                if (mention_id in already_replied_mentions) and first_pass:
+                if (mention_id in already_replied_mentions):
                     logging.info(f"Already replied to this mention: {mention_id}")
                     continue
                 since_id = max(since_id, mention_id)
                 mention_data = self.get_status_data(mention)
                 if not mention_data :
-                    logging.info("No tweet to translate. Waiting...")
+                    logging.info("Mentions, but no tweet to translate. Waiting...")
                     time.sleep(15)
                     continue
                 traslated_tweet = self.translate(
