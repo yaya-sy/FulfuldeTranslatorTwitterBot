@@ -240,7 +240,7 @@ class TranslatorTwitterBot:
         """
         # to long tweet
         if len(text_to_reply) > 280:
-            text_to_reply = text_to_reply[:260]
+            text_to_reply = "Mi fassiri, amma fassirdu ndu juuti. Ɗu'um ina holla yo fassirdu ndu wooɗaa... 😕"
         try:
             self.api.update_status(status=text_to_reply,
                                     in_reply_to_status_id=tweet_to_reply,
