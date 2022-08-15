@@ -252,7 +252,7 @@ class TranslatorTwitterBot:
     
     def run_bot(self) -> None:
         """Run the bot by calling all the necessary functions here!"""
-        since_id = 1558629326693842945
+        since_id = 1558955516524650496
         already_replied_mentions: Set[int] = self.get_already_replied_mentions()
         while True:
             for mention in Cursor(self.api.mentions_timeline,
