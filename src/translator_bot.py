@@ -208,7 +208,7 @@ class TranslatorTwitterBot:
     def translate(self, src_language: str, tgt_language: str, text_to_translate: str) -> str:
         """Request translation of given text from source language to a target language."""
 
-        inputs = {"data": [text_to_translate, src_language, tgt_language, 270]}
+        inputs = {"data": [src_language, tgt_language, text_to_translate, 270]}
         for _ in range(10) :
             try:
                 response = requests.post(self.translator,
